@@ -1,0 +1,55 @@
+import {AttachmentBuilder, GuildMember} from "discord.js";
+import * as Canvas from "canvas";
+import ImageUtils from "./ImageUtils";
+import Player from "../Player";
+import {bot} from "../app";
+
+export default class LeaderboardImage {
+    public static async build(page: number): Promise<AttachmentBuilder> {
+        let offset = (page - 1) * 5;
+
+        const canvas = Canvas.createCanvas(2560, 1440);
+        const ctx = canvas.getContext('2d');
+        const background = await Canvas.loadImage("./media/Leaderboard.png");
+        const players = (await bot.database.players.find().sort({rank: 1}).skip(offset).limit(5).toArray());
+        ImageUtils.printImage(ctx, background, 0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < players.length; i++) {
+            try {
+                let player = Player.fromObject(players[i]);
+                let user = await bot.guild.members.fetch(player.id) as GuildMember;
+                let avatar = await Canvas.loadImage(user.displayAvatarURL({extension: 'png', size: 256}));
+                let rank;
+                if (player.rank > 2 && player.elo > 800) rank = await Canvas.loadImage(`./media/3-immortal.png`);
+                else rank = await Canvas.loadImage(`./media/${ImageUtils.rankFile(player.elo)}`);
+
+                ImageUtils.printImage(ctx, rank, 144, (400 + (i * 200)),125, 125);
+                ctx.fillStyle = "#000000";
+                ctx.beginPath();
+                ctx.arc(980, (460 + (i * 200)), 64, 0, Math.PI * 2, true);
+                ctx.fillStyle = "#ffffff";
+                ctx.clip();
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(980, (460 + (i * 200)), 60, 0, Math.PI * 2, true);
+                ctx.clip();
+                ctx.drawImage(avatar, 920, (400 + (i * 200)), 120, 120);
+                ctx.closePath();
+                ctx.restore();
+                ctx.save();
+
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        for (let i = 0; i < players.length; i++) {
+            let player = Player.fromObject(players[i]);
+            ImageUtils.printText(ctx, player.name, 1080, 490 + (i * 200), "#FFFFFF", "90px sans-serif","left");
+            ImageUtils.printText(ctx, `${player.elo} Elo`, 2200, 490 + (i * 200), "#FFFFFF", "90px sans-serif, Code2000","center");
+            ImageUtils.printText(ctx, `${ImageUtils.ordinalSuffixOf(player.rank)}`, 550, 490 + (i * 200), "#FFFFFF", "90x sans-serif, Code2000", "center");
+        }
+
+        return new AttachmentBuilder(canvas.toBuffer(), {name: 'leaderboard.png'});
+    }
+}
