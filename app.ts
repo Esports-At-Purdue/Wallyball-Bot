@@ -12,6 +12,7 @@ bot.login(config.token).then(async () => {
 
 bot.on(Events.InteractionCreate, (interaction: Interaction) => {
     let status: Promise<InteractionStatus>;
+    //
     if (interaction.isCommand()) status = handleCommand(interaction as ChatInputCommandInteraction);
     if (interaction.isModalSubmit()) status = handleModalSubmit(interaction);
 
