@@ -17,19 +17,27 @@ bot.on(Events.InteractionCreate, (interaction: Interaction) => {
     if (interaction.isModalSubmit()) status = handleModalSubmit(interaction);
 
     status.then((response) => {
-        if (!response.status) {
-            if (interaction.isRepliable()) {
-                if (interaction.isChatInputCommand()) {
-                    if (interaction.deferred) {
-                        interaction.editReply({content: "Sorry, that didn't work"}).catch()
-                    }
-                } else {
-                    interaction.reply({content: "Sorry, that didn't work.", ephemeral: true}).catch();
-                }
-            }
-            bot.logger.error(`${response.type} by ${response.user.username} failed.`, response.error);
+
+        if (response && response.status) return
+
+        bot.logger.error(`${response.type} by ${response.user.username} failed.`, response.error);
+
+        if (!interaction.isRepliable()) return;
+
+        if (interaction.replied) {
+            interaction.followUp({content: "Sorry, that didn't work.", ephemeral: true}).catch();
+            return;
         }
-    }).catch();
+
+        if (interaction.deferred) {
+            interaction.editReply({content: "Sorry, that didn't work"}).catch();
+            return;
+        }
+
+        interaction.reply({content: "Sorry, that didn't work.", ephemeral: true}).catch();
+    }).catch(error => {
+        bot.logger.error("Unknown Interaction Failed", error);
+    });
 });
 
 async function handleCommand(interaction: ChatInputCommandInteraction): Promise<InteractionStatus> {
