@@ -1,6 +1,8 @@
 import {SlashCommandBuilder} from "@discordjs/builders";
 import {ChatInputCommandInteraction} from "discord.js";
 import LeaderboardImage from "../images/Leaderboard.Image";
+import LeaderboardActionRow from "../components/Leaderboard.ActionRow";
+import {bot} from "../app";
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,9 +17,13 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
         await interaction.deferReply();
 
-        const page = interaction.options.getInteger('page') ?? 1;
-        const file = await LeaderboardImage.build(page)
+        let page = interaction.options.getInteger('page') ?? 1;
+        const maxPages = Math.ceil(await bot.database.players.countDocuments() / 5);
+        if (page > maxPages) page = maxPages;
+        if (page < 1) page = 1;
+        const file = await LeaderboardImage.build(page);
+        const actionRow = new LeaderboardActionRow(page, maxPages);
 
-        await interaction.editReply({files: [file]});
+        await interaction.editReply({files: [file], components: [actionRow]});
     },
 }

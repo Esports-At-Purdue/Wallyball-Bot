@@ -3,6 +3,7 @@ import {ChatInputCommandInteraction} from "discord.js";
 import Team from "../Team";
 import Player from "../Player";
 import {bot} from "../app";
+import GameUpdateEmbed from "../embeds/Game.Update.Embed";
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -47,6 +48,8 @@ module.exports = {
         const totalRounds = teamOneScore + teamTwoScore;
         const winningTeamName = teamOneScore > teamTwoScore ? capitalizeEveryWord(teamOneName) : capitalizeEveryWord(teamTwoName);
         const losingTeamName = teamOneScore > teamTwoScore ? capitalizeEveryWord(teamTwoName) : capitalizeEveryWord(teamOneName);
+        const winningScore = teamOneScore > teamTwoScore ? teamOneScore : teamTwoScore;
+        const losingScore = teamOneScore > teamTwoScore ? teamTwoScore : teamOneScore;
 
         const teamOne = await Team.get(teamOneName);
         const teamTwo = await Team.get(teamTwoName);
@@ -76,6 +79,8 @@ module.exports = {
 
         const teamOneAverageElo = await teamOne.getAverageElo();
         const teamTwoAverageElo = await teamTwo.getAverageElo();
+        const players = [];
+        const eloChanges = [];
 
         for (const playerId of teamOne.players) {
             const player = await Player.get(playerId);
@@ -86,6 +91,8 @@ module.exports = {
             if (teamOneScore > teamTwoScore) player.setsWon += 1;
             else player.setsLost += 1;
             await player.save();
+            players.push(player);
+            eloChanges.push(eloChange);
         }
 
         for (const playerId of teamTwo.players) {
@@ -97,12 +104,16 @@ module.exports = {
             if (teamOneScore > teamTwoScore) player.setsLost += 1;
             else player.setsWon += 1;
             await player.save();
+            players.push(player);
+            eloChanges.push(eloChange);
         }
 
         await teamOne.save();
         await teamTwo.save();
         await bot.database.updateRankings();
-        await interaction.reply({content: `A victory has been recorded for the ${winningTeamName} versus the ${losingTeamName}.`});
+        const title = `The ${winningTeamName} defeated the ${losingTeamName}: ${winningScore}-${losingScore}`;
+        const embed = new GameUpdateEmbed(title, players, eloChanges);
+        await interaction.reply({embeds: [embed]});
     }
 }
 
