@@ -1,8 +1,17 @@
 import Bot from "./Bot";
 import * as config from "./config.json";
 import InteractionStatus, {InteractionType} from "./InteractionStatus";
-import {ChatInputCommandInteraction, Events, GuildMember, Interaction, ModalSubmitInteraction} from "discord.js";
+import {
+    ButtonInteraction,
+    ChatInputCommandInteraction,
+    Events,
+    GuildMember,
+    Interaction,
+    ModalSubmitInteraction
+} from "discord.js";
 import Player from "./Player";
+import LeaderboardImage from "./images/Leaderboard.Image";
+import LeaderboardActionRow from "./components/Leaderboard.ActionRow";
 
 export const bot = new Bot();
 
@@ -12,7 +21,7 @@ bot.login(config.token).then(async () => {
 
 bot.on(Events.InteractionCreate, (interaction: Interaction) => {
     let status: Promise<InteractionStatus>;
-    //
+    if (interaction.isButton()) status = handleButton(interaction);
     if (interaction.isCommand()) status = handleCommand(interaction as ChatInputCommandInteraction);
     if (interaction.isModalSubmit()) status = handleModalSubmit(interaction);
 
@@ -39,6 +48,27 @@ bot.on(Events.InteractionCreate, (interaction: Interaction) => {
         bot.logger.error("Unknown Interaction Failed", error);
     });
 });
+
+async function handleButton(interaction: ButtonInteraction): Promise<InteractionStatus> {
+    const user = interaction.user;
+    const id = interaction.customId;
+
+    try {
+
+        if (id.startsWith("page")) {
+            await interaction.deferUpdate();
+            const page = Number.parseInt(id.slice(5));
+            const file = await LeaderboardImage.build(page);
+            const maxPages = Math.ceil(await bot.database.players.countDocuments() / 5);
+            const actionRow = new LeaderboardActionRow(page, maxPages);
+            await interaction.editReply({files: [file], components: [actionRow]})
+        }
+
+        return new InteractionStatus(InteractionType.Button, user, true, null);
+    } catch (error) {
+        return new InteractionStatus(InteractionType.Button, user, false, error);
+    }
+}
 
 async function handleCommand(interaction: ChatInputCommandInteraction): Promise<InteractionStatus> {
     const user = interaction.user;
