@@ -8,12 +8,12 @@ export default class LeaderboardActionRow extends ActionRowBuilder<ButtonBuilder
                 new ButtonBuilder()
                     .setEmoji("👈")
                     .setCustomId(`0`)
-                    .setStyle(ButtonStyle.Success)
+                    .setStyle(ButtonStyle.Secondary)
                     .setDisabled(true),
                 new ButtonBuilder()
                     .setEmoji("👉")
                     .setCustomId("page-2")
-                    .setStyle(ButtonStyle.Success)
+                    .setStyle(ButtonStyle.Secondary)
             )
         }
         else if (page == totalPages) {
@@ -21,11 +21,11 @@ export default class LeaderboardActionRow extends ActionRowBuilder<ButtonBuilder
                 new ButtonBuilder()
                     .setEmoji("👈")
                     .setCustomId(`page-${totalPages - 1}`)
-                    .setStyle(ButtonStyle.Success),
+                    .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
                     .setEmoji("👉")
                     .setCustomId("0")
-                    .setStyle(ButtonStyle.Success)
+                    .setStyle(ButtonStyle.Secondary)
                     .setDisabled(true)
             )
         }
@@ -34,11 +34,11 @@ export default class LeaderboardActionRow extends ActionRowBuilder<ButtonBuilder
                 new ButtonBuilder()
                     .setEmoji("👈")
                     .setCustomId(`page-${page - 1}`)
-                    .setStyle(ButtonStyle.Success),
+                    .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
                     .setEmoji("👉")
                     .setCustomId(`page-${page + 1}`)
-                    .setStyle(ButtonStyle.Success)
+                    .setStyle(ButtonStyle.Secondary)
             )
         }
     }
