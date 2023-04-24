@@ -1,6 +1,7 @@
 import { CanvasRenderingContext2D, Image } from "canvas";
 
 export default class ImageUtils {
+
     public static printText
     (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, font: string, alignment: CanvasTextAlign) {
         ctx.fillStyle = color;
