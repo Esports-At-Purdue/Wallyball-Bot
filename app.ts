@@ -58,9 +58,9 @@ async function handleButton(interaction: ButtonInteraction): Promise<Interaction
         if (id.startsWith("page")) {
             await interaction.deferUpdate();
             const page = Number.parseInt(id.slice(5));
-            const file = await LeaderboardImage.build(page);
             const maxPages = Math.ceil(await bot.database.players.countDocuments() / 5);
             const actionRow = new LeaderboardActionRow(page, maxPages);
+            const file = await LeaderboardImage.build(page);
             await interaction.editReply({files: [file], components: [actionRow]})
         }
 

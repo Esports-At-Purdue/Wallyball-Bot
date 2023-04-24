@@ -12,6 +12,7 @@ module.exports = {
             .setName('page')
             .setDescription('The page of the leaderboard')
             .setRequired(false)
+            .setMinValue(1)
         ),
 
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -20,7 +21,6 @@ module.exports = {
         let page = interaction.options.getInteger('page') ?? 1;
         const maxPages = Math.ceil(await bot.database.players.countDocuments() / 5);
         if (page > maxPages) page = maxPages;
-        if (page < 1) page = 1;
         const file = await LeaderboardImage.build(page);
         const actionRow = new LeaderboardActionRow(page, maxPages);
 
